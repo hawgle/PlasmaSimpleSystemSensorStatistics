@@ -1,14 +1,24 @@
 # Simple System Sensor Statistics (S4)
 
-<img src="" width=100>
+<img src="https://raw.githubusercontent.com/hawgle/PlasmaSimpleSystemSensorStatistics/refs/heads/master/imgs/s4-logo.png" height=100>
 
 A simple plasmoid to display system sensor data from your CPU, RAM, GPU or Network Interface as a line graph in KDE Plasma 6. Inspired by Microsoft's Sysinternals Process Explorer, which has similar functionality on Windows.
 
+<img src="https://github.com/hawgle/PlasmaSimpleSystemSensorStatistics/blob/master/imgs/s4-preview-taskbar.GIF?raw=true" height=100>
+
+<img src="https://github.com/hawgle/PlasmaSimpleSystemSensorStatistics/blob/master/imgs/s4-preview-desktop.gif?raw=true" height=200>
+
 ## Installation
 
-### 
+Make sure you're running KDE Plasma 6.
 
-## Use
+### From file
+
+1. Download the .plasmoid file from the newest Release
+2. In edit mode, under 'add Widgets', select 'Install from local file'
+3. Select your downloaded .plasmoid file.
+
+## Usage
 
 By default, S4 will show you CPU usage in usermode (Green) and kernelmode (Red). Hovering over the widget will show you the current usage in percent and the process that is currently responsible for most of that usage.
 
