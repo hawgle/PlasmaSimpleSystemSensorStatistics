@@ -1,10 +1,12 @@
 # Simple System Sensor Statistics (S4)
 
+<img src="" width=100>
+
 A simple plasmoid to display system sensor data from your CPU, RAM, GPU or Network Interface as a line graph in KDE Plasma 6. Inspired by Microsoft's Sysinternals Process Explorer, which has similar functionality on Windows.
 
 ## Installation
 
-
+### 
 
 ## Use
 
