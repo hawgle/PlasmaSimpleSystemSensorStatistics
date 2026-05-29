@@ -1,0 +1,21 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "plasmagraph@hawgle.de",
+                "Name": "Hawgle"
+            }
+        ],
+        "Id": "de.hawgle.plasmagraph",
+        "Name": "Simple System Sensor Statistics",
+        "Description": "A simple widget to display system sensor data as a line graph, inspired my Microsoft's Sysinternals Process Explorer. Made by an amateur.",
+        "Description[de]": "Ein simples Widget um Systemsensordaten als Graph darzustellen. Inspiriert von Microsoft Sysinternals Process Explorer. Erstellt von einem Amateur.",
+        "Icon": "de.hawgle.plasmagraph",
+        "Version": "1.0",
+        "License": "GPL",
+        "Category": "System Information",
+        "Website": "hawgle.de/plasmagraph"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "KPackageStructure": "Plasma/Applet"
+}
