@@ -12,6 +12,14 @@ A simple plasmoid to display system sensor data from your CPU, RAM, GPU or Netwo
 
 Make sure you're running KDE Plasma 6.
 
+### From within Plasma
+
+1. In edit mode, go to 'Add or manage Widgets' > 'Get New' > 'Download new Plasma Widgets'.
+2. Search for 'Simple System Sensor Statistics'
+3. Select 'install'. After some time or a restart of the plasma shell, S4 should be visible in your list of widgets in edit mode.
+
+You can also install the widget from KDE Discover. In Discover, go to 'Plasma Addons' > 'Plasma Widgets' and search for 'Simple System Sensor Statistics'.
+
 ### From file
 
 1. Download the .plasmoid file from the newest Release
