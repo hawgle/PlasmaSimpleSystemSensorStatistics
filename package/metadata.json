@@ -14,7 +14,7 @@
         "Version": "1.0",
         "License": "GPL",
         "Category": "System Information",
-        "Website": "hawgle.de/plasmagraph"
+        "Website": "https://hawgle.de/plasmagraph"
     },
     "X-Plasma-API-Minimum-Version": "6.0",
     "KPackageStructure": "Plasma/Applet"
