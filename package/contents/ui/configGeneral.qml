@@ -91,7 +91,7 @@ KCM.SimpleKCM {
     // available disks, enumerated via lsblk
     ListModel {
         id: diskModel
-        ListElement { label: "Automatic (OS Drive)"; value: "" }
+        ListElement { label: "System Boot drive"; value: "" }
         ListElement { label: "All Disks"; value: "all" }
     }
 
