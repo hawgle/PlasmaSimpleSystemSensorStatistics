@@ -15,14 +15,19 @@ PlasmoidItem {
     readonly property bool isVertical: Plasmoid.formFactor === PlasmaCore.Types.Vertical
     property bool isWide: Plasmoid.configuration.widgetShape === 1
 
+    // graph size as a fraction of the available panel thickness
+    property real graphScale: Math.max(20, Math.min(100, Plasmoid.configuration.graphSize || 100)) / 100
+    readonly property int graphThickness: Math.max(4, Math.round((isVertical ? width : height) * graphScale))
+    readonly property int graphLength: isWide ? Math.round(graphThickness * 1.8) : graphThickness
+
     Layout.fillHeight: !isVertical
     Layout.fillWidth: isVertical
 
-    Layout.preferredWidth: isVertical ? -1 : (isWide ? Math.round(height * 1.8) : height)
+    Layout.preferredWidth: isVertical ? -1 : graphLength
     Layout.minimumWidth: isVertical ? -1 : Layout.preferredWidth
     Layout.maximumWidth: isVertical ? -1 : Layout.preferredWidth
 
-    Layout.preferredHeight: isVertical ? (isWide ? Math.round(width * 1.8) : width) : -1
+    Layout.preferredHeight: isVertical ? graphLength : -1
     Layout.minimumHeight: isVertical ? Layout.preferredHeight : -1
     Layout.maximumHeight: isVertical ? Layout.preferredHeight : -1
 
@@ -36,17 +41,51 @@ PlasmoidItem {
     property color bgColor: useDarkTheme ? "#2d2d2d" : "#808080"
     property color borderColor: useDarkTheme ? "#808080" : "#2d2d2d"
 
+    // devices
+    property string gpuDevice: Plasmoid.configuration.gpuDevice || "all"
+
+    // "" in the config means: use the disk the OS root filesystem lives on (detected below)
+    property string detectedOsDisk: ""
+    property string diskDevice: Plasmoid.configuration.diskDevice || detectedOsDisk || "all"
+
+    onGpuDeviceChanged: { history1 = []; history2 = []; canvas.requestPaint(); }
+    onDiskDeviceChanged: { history1 = []; history2 = []; canvas.requestPaint(); }
+
+    P5Support.DataSource {
+        id: osDiskSource
+        engine: "executable"
+        connectedSources: []
+    }
+
+    Connections {
+        target: osDiskSource
+        function onNewData(sourceName, data) {
+            if (data["exit code"] === 0) {
+                var dev = (data["stdout"] || "").trim();
+                if (dev) root.detectedOsDisk = dev;
+            }
+            osDiskSource.disconnectSource(sourceName);
+        }
+    }
+
+    Component.onCompleted: {
+        // resolve the root filesystem source to its physical disk (follows LUKS/LVM/btrfs layers)
+        osDiskSource.connectSource("findmnt -rno SOURCE / | sed 's/\\[.*\\]//' | xargs lsblk -srno NAME,TYPE | awk '$2==\"disk\"{print $1; exit}'");
+    }
+
     // sensor
     Sensors.Sensor { id: cpuUser;      sensorId: "cpu/all/user" }
     Sensors.Sensor { id: cpuSys;       sensorId: "cpu/all/system" }
     Sensors.Sensor { id: cpuTotal;     sensorId: "cpu/all/usage" }
     Sensors.Sensor { id: memUsed;      sensorId: "memory/physical/used" }
     Sensors.Sensor { id: memTotal;     sensorId: "memory/physical/total" }
-    Sensors.Sensor { id: gpuUsage;     sensorId: "gpu/all/usage" }
-    Sensors.Sensor { id: gpuVramUsed;  sensorId: "gpu/all/usedVram" }
-    Sensors.Sensor { id: gpuVramTotal; sensorId: "gpu/all/totalVram" }
+    Sensors.Sensor { id: gpuUsage;     sensorId: "gpu/" + root.gpuDevice + "/usage" }
+    Sensors.Sensor { id: gpuVramUsed;  sensorId: "gpu/" + root.gpuDevice + "/usedVram" }
+    Sensors.Sensor { id: gpuVramTotal; sensorId: "gpu/" + root.gpuDevice + "/totalVram" }
     Sensors.Sensor { id: netDown;      sensorId: "network/all/download" }
     Sensors.Sensor { id: netUp;        sensorId: "network/all/upload" }
+    Sensors.Sensor { id: diskRead;     sensorId: "disk/" + root.diskDevice + "/read" }
+    Sensors.Sensor { id: diskWrite;    sensorId: "disk/" + root.diskDevice + "/write" }
 
     // history
     property var history1: []
@@ -88,18 +127,14 @@ PlasmoidItem {
             case 1:  return ["#FF8040", "transparent"];  // Memory
             case 2:  return ["#0054D1", "#8AB9FF"];      // GPU: Usage, VRAM
             case 3:  return ["#FF6BBC", "#1e3cc8"];      // Network: Down, Up
+            case 4:  return ["#FFD700", "#B8860B"];      // Disk: Read, Write
             default: return ["#37b837", "#FF0000"];      // CPU: User, Kernel
         }
     }
 
-    // update internval
-    property int updateIntervalMs: {
-        switch (Plasmoid.configuration.updateSpeed) {
-            case 1:  return 500;
-            case 2:  return 250;
-            default: return 1000;
-        }
-    }
+    // update interval
+    property int updateIntervalMs: Plasmoid.configuration.updateInterval > 0
+        ? Plasmoid.configuration.updateInterval : 500
 
     // tooltip
     PlasmaCore.ToolTipArea {
@@ -109,6 +144,7 @@ PlasmoidItem {
                 case 1:  return "Memory";
                 case 2:  return "GPU";
                 case 3:  return "Network";
+                case 4:  return "Disk";
                 default: return "CPU";
             }
         }
@@ -126,6 +162,8 @@ PlasmoidItem {
         var _gpuVramTotal = gpuVramTotal.value;
         var _netDown = netDown.value;
         var _netUp = netUp.value;
+        var _diskRead = diskRead.value;
+        var _diskWrite = diskWrite.value;
         var _top = root.topProcessName;
 
         return buildTooltipSubText();
@@ -157,6 +195,11 @@ PlasmoidItem {
             var up = sensorValue(netUp);
             lines.push("Down: " + formatSpeed(down));
             lines.push("Up: " + formatSpeed(up));
+        } else if (src === 4) {
+            var read = sensorValue(diskRead);
+            var write = sensorValue(diskWrite);
+            lines.push("Read: " + formatByteSpeed(read));
+            lines.push("Write: " + formatByteSpeed(write));
         }
         return lines.join("\n");
     }
@@ -180,6 +223,10 @@ PlasmoidItem {
         if (mbits >= 1000) return (mbits / 1000).toFixed(2) + " Gbit/s";
         if (mbits >= 1) return mbits.toFixed(2) + " Mbit/s";
         return (mbits * 1000).toFixed(1) + " Kbit/s";
+    }
+
+    function formatByteSpeed(bytesPerSec) {
+        return formatBytes(bytesPerSec) + "/s";
     }
 
     // top usage process
@@ -242,6 +289,9 @@ PlasmoidItem {
             } else if (src === 3) {
                 v1 = sensorValue(netDown);
                 v2 = sensorValue(netUp);
+            } else if (src === 4) {
+                v1 = sensorValue(diskRead);
+                v2 = sensorValue(diskWrite);
             }
 
             var h1 = history1; h1.push(v1);
@@ -258,7 +308,9 @@ PlasmoidItem {
     // rendering
     Canvas {
         id: canvas
-        anchors.fill: parent
+        anchors.centerIn: parent
+        width: root.isVertical ? root.graphThickness : root.graphLength
+        height: root.isVertical ? root.graphLength : root.graphThickness
 
         onPaint: {
             var ctx = getContext("2d");
@@ -279,7 +331,8 @@ PlasmoidItem {
             ctx.clip();
 
             var maxVal = 100;
-            if (Plasmoid.configuration.sensorSource === 3) {
+            var src = Plasmoid.configuration.sensorSource;
+            if (src === 3 || src === 4) {
                 var peak = 0;
                 var d1 = history1, d2 = history2;
                 for (var j = 0; j < d1.length; j++) if (d1[j] > peak) peak = d1[j];
@@ -320,8 +373,14 @@ PlasmoidItem {
                 ctx.stroke();
             };
 
-            drawGraph(history1, root.line1, root.fill1);
-            drawGraph(history2, root.line2, root.fill2);
+            if (src === 2) {
+                // GPU: usage matters more than VRAM, so draw it on top
+                drawGraph(history2, root.line2, root.fill2);
+                drawGraph(history1, root.line1, root.fill1);
+            } else {
+                drawGraph(history1, root.line1, root.fill1);
+                drawGraph(history2, root.line2, root.fill2);
+            }
             ctx.restore();
         }
     }
