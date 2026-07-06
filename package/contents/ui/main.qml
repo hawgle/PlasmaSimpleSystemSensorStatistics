@@ -44,7 +44,6 @@ PlasmoidItem {
     // devices
     property string gpuDevice: Plasmoid.configuration.gpuDevice || "all"
 
-    // "" in the config means: use the disk the OS root filesystem lives on (detected below)
     property string detectedOsDisk: ""
     property string diskDevice: Plasmoid.configuration.diskDevice || detectedOsDisk || "all"
 
@@ -69,7 +68,6 @@ PlasmoidItem {
     }
 
     Component.onCompleted: {
-        // resolve the root filesystem source to its physical disk (follows LUKS/LVM/btrfs layers)
         osDiskSource.connectSource("findmnt -rno SOURCE / | sed 's/\\[.*\\]//' | xargs lsblk -srno NAME,TYPE | awk '$2==\"disk\"{print $1; exit}'");
     }
 
@@ -374,7 +372,6 @@ PlasmoidItem {
             };
 
             if (src === 2) {
-                // GPU: usage matters more than VRAM, so draw it on top
                 drawGraph(history2, root.line2, root.fill2);
                 drawGraph(history1, root.line1, root.fill1);
             } else {

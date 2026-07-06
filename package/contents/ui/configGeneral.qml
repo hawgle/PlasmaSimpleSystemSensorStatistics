@@ -52,8 +52,7 @@ KCM.SimpleKCM {
         diskCombo.currentIndex = Math.max(0, diskCombo.indexOfValue(cfg_diskDevice));
     }
 
-    // available GPUs, probed via their name sensor (numbering is not
-    // guaranteed to start at 0, so probe a small range)
+    // available GPUs, probed via their name sensor
     ListModel {
         id: gpuModel
         ListElement { label: "All GPUs"; value: "all"; sortKey: -1 }
