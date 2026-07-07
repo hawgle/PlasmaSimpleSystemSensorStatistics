@@ -11,7 +11,7 @@
         "Description": "A simple widget to display system sensor data as a line graph, inspired my Microsoft's Sysinternals Process Explorer. Made by an amateur.",
         "Description[de]": "Ein simples Widget um Systemsensordaten als Graph darzustellen. Inspiriert von Microsoft Sysinternals Process Explorer. Erstellt von einem Amateur.",
         "Icon": "de.hawgle.plasmagraph",
-        "Version": "1.0",
+        "Version": "1.3",
         "License": "GPL",
         "Category": "System Information",
         "Website": "https://hawgle.de/plasmagraph"
