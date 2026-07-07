@@ -1,0 +1,180 @@
+# German translation for Simple System Sensor Statistics (S4).
+# This file is distributed under the same license as the S4 package.
+msgid ""
+msgstr ""
+"Project-Id-Version: de.hawgle.plasmagraph\n"
+"Report-Msgid-Bugs-To: plasmagraph@hawgle.de\n"
+"POT-Creation-Date: 2026-07-06 00:00+0200\n"
+"PO-Revision-Date: 2026-07-06 00:00+0200\n"
+"Last-Translator: Hawgle <plasmagraph@hawgle.de>\n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: package/contents/config/config.qml
+msgid "General"
+msgstr "Allgemein"
+
+#: package/contents/ui/configGeneral.qml
+msgid "Shape:"
+msgstr "Form:"
+
+#: package/contents/ui/configGeneral.qml
+msgid "Square"
+msgstr "Quadrat"
+
+#: package/contents/ui/configGeneral.qml
+msgid "Wide"
+msgstr "Breit"
+
+#: package/contents/ui/configGeneral.qml
+msgid "Theme:"
+msgstr "Schema:"
+
+#: package/contents/ui/configGeneral.qml
+msgid "Dark"
+msgstr "Dunkel"
+
+#: package/contents/ui/configGeneral.qml
+msgid "Light"
+msgstr "Hell"
+
+#: package/contents/ui/configGeneral.qml
+msgid "Follow System"
+msgstr "System folgen"
+
+#: package/contents/ui/configGeneral.qml
+msgid "Update Speed:"
+msgstr "Aktualisierungsgeschwindigkeit:"
+
+#: package/contents/ui/configGeneral.qml
+msgid "Sensor:"
+msgstr "Sensor:"
+
+#: package/contents/ui/configGeneral.qml package/contents/ui/main.qml
+msgid "CPU"
+msgstr "CPU"
+
+#: package/contents/ui/configGeneral.qml package/contents/ui/main.qml
+msgid "Memory"
+msgstr "RAM"
+
+#: package/contents/ui/configGeneral.qml package/contents/ui/main.qml
+msgid "GPU"
+msgstr "GPU"
+
+#: package/contents/ui/configGeneral.qml package/contents/ui/main.qml
+msgid "Network"
+msgstr "Netzwerk"
+
+#: package/contents/ui/configGeneral.qml package/contents/ui/main.qml
+msgid "Disk"
+msgstr "Laufwerk"
+
+#: package/contents/ui/configGeneral.qml
+msgid ""
+"Draws CPU usage in usermode (green) and kernelmode (red). Hovering shows "
+"total usage and the process currently using the most CPU."
+msgstr ""
+"Zeichnet die CPU-Auslastung im Usermodus (grün) und Kernelmodus (rot). Beim "
+"Überfahren mit der Maus werden die Gesamtauslastung und der Prozess mit der "
+"aktuell höchsten CPU-Last angezeigt."
+
+#: package/contents/ui/configGeneral.qml
+msgid ""
+"Draws a single orange graph showing physical memory usage. Hovering shows "
+"usage and the process using the most memory."
+msgstr ""
+"Zeichnet ein einzelnes orangenes Diagramm für die Belegung des physischen "
+"Arbeitsspeichers. Beim Überfahren mit der Maus werden die Belegung und der "
+"Prozess mit dem höchsten RAM-Verbrauch angezeigt."
+
+#: package/contents/ui/configGeneral.qml
+msgid ""
+"Draws GPU usage (dark blue) on top of VRAM usage (light blue). Hovering "
+"shows both values."
+msgstr ""
+"Zeichnet die GPU-Auslastung (dunkelblau) über der VRAM-Belegung (hellblau). "
+"Beim Überfahren mit der Maus werden beide Werte angezeigt."
+
+#: package/contents/ui/configGeneral.qml
+msgid ""
+"Draws download (pink) and upload (blue). Works with absolute units instead "
+"of percent, so the graph auto-scales to fit its displayed history."
+msgstr ""
+"Zeichnet Download (pink) und Upload (blau). Arbeitet mit absoluten "
+"Einheiten statt Prozent, daher skaliert sich das Diagramm automatisch "
+"passend zum angezeigten Verlauf."
+
+#: package/contents/ui/configGeneral.qml
+msgid ""
+"Draws disk read (yellow) and write (dark yellow) activity. Works with "
+"absolute units instead of percent, so the graph auto-scales to fit its "
+"displayed history."
+msgstr ""
+"Zeichnet Lese- (gelb) und Schreibaktivität (dunkelgelb) des Laufwerks. "
+"Arbeitet mit absoluten Einheiten statt Prozent, daher skaliert sich das "
+"Diagramm automatisch passend zum angezeigten Verlauf."
+
+#: package/contents/ui/configGeneral.qml
+msgid "Device:"
+msgstr "Gerät:"
+
+#: package/contents/ui/configGeneral.qml
+msgid "All GPUs"
+msgstr "Alle GPUs"
+
+#: package/contents/ui/configGeneral.qml
+msgid "System Boot drive"
+msgstr "Systemstartlaufwerk"
+
+#: package/contents/ui/configGeneral.qml
+msgid "All Disks"
+msgstr "Alle Laufwerke"
+
+#: package/contents/ui/configGeneral.qml
+msgid "Graph Size:"
+msgstr "Diagrammgröße:"
+
+#: package/contents/ui/configGeneral.qml
+msgid "Fill Opacity:"
+msgstr "Flächentransparenz:"
+
+#: package/contents/ui/configGeneral.qml
+msgid "Line Thickness:"
+msgstr "Linienstärke:"
+
+#: package/contents/ui/configGeneral.qml
+msgid "Custom Colors:"
+msgstr "Eigene Farben:"
+
+#: package/contents/ui/configGeneral.qml
+msgid "Override default line colors"
+msgstr "Standardfarben überschreiben"
+
+#: package/contents/ui/configGeneral.qml
+msgid "Line 1 Color:"
+msgstr "Diagramm 1 Farbe:"
+
+#: package/contents/ui/configGeneral.qml
+msgid "Line 2 Color:"
+msgstr "Diagramm 2 Farbe:"
+
+#: package/contents/ui/main.qml
+msgid "%1 Down"
+msgstr "%1 Download"
+
+#: package/contents/ui/main.qml
+msgid "%1 Up"
+msgstr "%1 Upload"
+
+#: package/contents/ui/main.qml
+msgid "%1 Read"
+msgstr "%1 Lesen"
+
+#: package/contents/ui/main.qml
+msgid "%1 Write"
+msgstr "%1 Schreiben"

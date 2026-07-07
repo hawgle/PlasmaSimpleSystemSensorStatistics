@@ -11,18 +11,18 @@ import org.kde.plasma.plasma5support as P5Support
 KCM.SimpleKCM {
     id: configRoot
 
-    property int cfg_widgetShape
-    property int cfg_themeMode
-    property alias cfg_updateInterval: updateSlider.value
+    property alias cfg_widgetShape: shapeCombo.currentIndex
+    property alias cfg_themeMode: themeCombo.currentIndex
+    property alias cfg_updateInterval: updateRow.value
     property alias cfg_sensorSource: sensorCombo.currentIndex
     property string cfg_diskDevice
     property string cfg_gpuDevice
-    property alias cfg_graphSize: graphSizeSlider.value
-    property alias cfg_fillOpacity: opacitySlider.value
+    property alias cfg_graphSize: graphSizeRow.value
+    property alias cfg_fillOpacity: opacityRow.value
     property alias cfg_overrideColors: overrideCheck.checked
     property string cfg_customLine1
     property string cfg_customLine2
-    property alias cfg_lineWidth: lineWidthSlider.value
+    property alias cfg_lineWidth: lineWidthRow.value
 
     property int cfg_widgetShapeDefault: 0
     property int cfg_themeModeDefault: 2
@@ -37,8 +37,7 @@ KCM.SimpleKCM {
     property string cfg_customLine2Default: "#FF0000"
     property int cfg_lineWidthDefault: 1
 
-    // keep the device combos and color buttons in sync when the config
-    // is loaded or reset to defaults
+    // sync
     onCfg_gpuDeviceChanged: syncGpuCombo()
     onCfg_diskDeviceChanged: syncDiskCombo()
     onCfg_customLine1Changed: line1Button.color = cfg_customLine1
@@ -52,167 +51,109 @@ KCM.SimpleKCM {
         diskCombo.currentIndex = Math.max(0, diskCombo.indexOfValue(cfg_diskDevice));
     }
 
-    // available GPUs, probed via their name sensor
-    ListModel {
-        id: gpuModel
-        ListElement { label: "All GPUs"; value: "all"; sortKey: -1 }
-    }
+    // gpu probe
+    property var gpuNames: ({})
+
+    ListModel { id: gpuModel }
 
     Instantiator {
         model: 8
         delegate: Sensors.Sensor {
             sensorId: "gpu/gpu" + index + "/name"
-            onValueChanged: {
-                if (value !== undefined && value !== "")
-                    configRoot.registerGpu(index, String(value));
+            onValueChanged: if (value) {
+                configRoot.gpuNames[index] = String(value);
+                configRoot.rebuildGpuModel();
             }
         }
     }
 
-    function registerGpu(idx, name) {
-        var dev = "gpu" + idx;
-        var label = dev + " — " + name;
-        for (var i = 1; i < gpuModel.count; i++) {
-            if (gpuModel.get(i).value === dev) {
-                gpuModel.setProperty(i, "label", label);
-                return;
-            }
-            if (gpuModel.get(i).sortKey > idx) {
-                gpuModel.insert(i, { label: label, value: dev, sortKey: idx });
-                syncGpuCombo();
-                return;
-            }
-        }
-        gpuModel.append({ label: label, value: dev, sortKey: idx });
+    function rebuildGpuModel() {
+        gpuModel.clear();
+        gpuModel.append({ label: i18n("All GPUs"), value: "all" });
+        for (var i = 0; i < 8; i++)
+            if (gpuNames[i]) gpuModel.append({ label: "gpu" + i + " — " + gpuNames[i], value: "gpu" + i });
         syncGpuCombo();
     }
 
-    // available disks, enumerated via lsblk
-    ListModel {
-        id: diskModel
-        ListElement { label: "System Boot drive"; value: "" }
-        ListElement { label: "All Disks"; value: "all" }
-    }
+    // disk list
+    ListModel { id: diskModel }
 
     P5Support.DataSource {
         id: lsblkSource
         engine: "executable"
         connectedSources: []
-    }
-
-    Connections {
-        target: lsblkSource
-        function onNewData(sourceName, data) {
-            if (data["exit code"] === 0)
-                configRoot.parseLsblk(data["stdout"] || "");
-            lsblkSource.disconnectSource(sourceName);
+        onNewData: function(sourceName, data) {
+            if (data["exit code"] === 0) configRoot.parseLsblk(data.stdout || "");
+            disconnectSource(sourceName);
         }
     }
 
-    Component.onCompleted: lsblkSource.connectSource("lsblk -d -J -o NAME,TYPE,MODEL")
-
     function parseLsblk(out) {
         try {
-            var devices = JSON.parse(out).blockdevices || [];
-            for (var i = 0; i < devices.length; i++) {
-                var d = devices[i];
+            for (const d of JSON.parse(out).blockdevices) {
                 if (d.type !== "disk" || d.name.indexOf("zram") === 0) continue;
-                var label = d.name + (d.model ? " — " + String(d.model).trim() : "");
-                diskModel.append({ label: label, value: d.name });
+                diskModel.append({ label: d.name + (d.model ? " — " + String(d.model).trim() : ""), value: d.name });
             }
         } catch (e) {}
         syncDiskCombo();
     }
 
+    Component.onCompleted: {
+        rebuildGpuModel();
+        diskModel.append({ label: i18n("System Boot drive"), value: "" });
+        diskModel.append({ label: i18n("All Disks"), value: "all" });
+        lsblkSource.connectSource("lsblk -d -J -o NAME,TYPE,MODEL");
+    }
+
+    // slider row
+    component SliderRow: RowLayout {
+        id: row
+        property alias from: control.from
+        property alias to: control.to
+        property alias stepSize: control.stepSize
+        property alias value: control.value
+        property string suffix
+
+        QQC2.Slider {
+            id: control
+            Layout.preferredWidth: 180
+        }
+        QQC2.Label {
+            text: Math.round(control.value) + row.suffix
+            Layout.preferredWidth: 55
+        }
+    }
+
     Kirigami.FormLayout {
-        // widget Shape
-        QQC2.ButtonGroup {
-            id: shapeGroup
+        // appearance
+        QQC2.ComboBox {
+            id: shapeCombo
+            Kirigami.FormData.label: i18n("Shape:")
+            model: [i18n("Square"), i18n("Wide")]
         }
 
-        QQC2.RadioButton {
-            id: shapeSquare
-            Kirigami.FormData.label: "Shape:"
-            QQC2.ButtonGroup.group: shapeGroup
-            text: "Square"
-            checked: cfg_widgetShape === 0
-            onClicked: if (checked) cfg_widgetShape = 0
+        QQC2.ComboBox {
+            id: themeCombo
+            Kirigami.FormData.label: i18n("Theme:")
+            model: [i18n("Dark"), i18n("Light"), i18n("Follow System")]
         }
 
-        QQC2.RadioButton {
-            id: shapeWide
-            QQC2.ButtonGroup.group: shapeGroup
-            text: "Wide"
-            checked: cfg_widgetShape === 1
-            onClicked: if (checked) cfg_widgetShape = 1
+        SliderRow {
+            id: updateRow
+            Kirigami.FormData.label: i18n("Update Speed:")
+            from: 100
+            to: 2000
+            stepSize: 50
+            suffix: " ms"
         }
 
-        // spacing
-        Item {
-            Kirigami.FormData.isSection: true
-        }
+        Item { Kirigami.FormData.isSection: true }
 
-        // theme
-        QQC2.ButtonGroup {
-            id: themeGroup
-        }
-
-        QQC2.RadioButton {
-            id: themeDark
-            Kirigami.FormData.label: "Theme:"
-            QQC2.ButtonGroup.group: themeGroup
-            text: "Dark"
-            checked: cfg_themeMode === 0
-            onClicked: if (checked) cfg_themeMode = 0
-        }
-
-        QQC2.RadioButton {
-            id: themeLight
-            QQC2.ButtonGroup.group: themeGroup
-            text: "Light"
-            checked: cfg_themeMode === 1
-            onClicked: if (checked) cfg_themeMode = 1
-        }
-
-        QQC2.RadioButton {
-            id: themeSystem
-            QQC2.ButtonGroup.group: themeGroup
-            text: "Follow System"
-            checked: cfg_themeMode === 2
-            onClicked: if (checked) cfg_themeMode = 2
-        }
-
-        // spacing
-        Item {
-            Kirigami.FormData.isSection: true
-        }
-
-        // update speed
-        RowLayout {
-            Kirigami.FormData.label: "Update Speed:"
-            QQC2.Slider {
-                id: updateSlider
-                from: 100
-                to: 2000
-                stepSize: 50
-                Layout.preferredWidth: 180
-            }
-            QQC2.Label {
-                text: Math.round(updateSlider.value) + " ms"
-                Layout.preferredWidth: 55
-            }
-        }
-
-        // spacing
-        Item {
-            Kirigami.FormData.isSection: true
-        }
-
-        // sensor data source
+        // sensor
         QQC2.ComboBox {
             id: sensorCombo
-            Kirigami.FormData.label: "Sensor Source:"
-            model: ["CPU", "Memory", "GPU", "Network", "Disk"]
+            Kirigami.FormData.label: i18n("Sensor:")
+            model: [i18n("CPU"), i18n("Memory"), i18n("GPU"), i18n("Network"), i18n("Disk")]
         }
 
         QQC2.Label {
@@ -222,18 +163,18 @@ KCM.SimpleKCM {
             opacity: 0.7
             text: {
                 switch (sensorCombo.currentIndex) {
-                    case 1:  return "Draws a single orange graph showing physical memory usage. Hovering shows usage and the process using the most memory.";
-                    case 2:  return "Draws GPU usage (dark blue) on top of VRAM usage (light blue). Hovering shows both values.";
-                    case 3:  return "Draws download (pink) and upload (blue). Works with absolute units instead of percent, so the graph auto-scales to fit its displayed history.";
-                    case 4:  return "Draws disk read (yellow) and write (dark yellow) activity. Works with absolute units instead of percent, so the graph auto-scales to fit its displayed history.";
-                    default: return "Draws CPU usage in usermode (green) and kernelmode (red). Hovering shows total usage and the process currently using the most CPU.";
+                    case 1:  return i18n("Draws a single orange graph showing physical memory usage. Hovering shows usage and the process using the most memory.");
+                    case 2:  return i18n("Draws GPU usage (dark blue) on top of VRAM usage (light blue). Hovering shows both values.");
+                    case 3:  return i18n("Draws download (pink) and upload (blue). Works with absolute units instead of percent, so the graph auto-scales to fit its displayed history.");
+                    case 4:  return i18n("Draws disk read (yellow) and write (dark yellow) activity. Works with absolute units instead of percent, so the graph auto-scales to fit its displayed history.");
+                    default: return i18n("Draws CPU usage in usermode (green) and kernelmode (red). Hovering shows total usage and the process currently using the most CPU.");
                 }
             }
         }
 
         QQC2.ComboBox {
             id: gpuCombo
-            Kirigami.FormData.label: "GPU Device:"
+            Kirigami.FormData.label: i18n("Device:")
             visible: sensorCombo.currentIndex === 2
             model: gpuModel
             textRole: "label"
@@ -243,7 +184,7 @@ KCM.SimpleKCM {
 
         QQC2.ComboBox {
             id: diskCombo
-            Kirigami.FormData.label: "Disk Device:"
+            Kirigami.FormData.label: i18n("Device:")
             visible: sensorCombo.currentIndex === 4
             model: diskModel
             textRole: "label"
@@ -251,84 +192,61 @@ KCM.SimpleKCM {
             onActivated: cfg_diskDevice = String(currentValue)
         }
 
-        // spacing
-        Item {
-            Kirigami.FormData.isSection: true
+        Item { Kirigami.FormData.isSection: true }
+
+        // graph style
+        SliderRow {
+            id: graphSizeRow
+            Kirigami.FormData.label: i18n("Graph Size:")
+            from: 20
+            to: 100
+            stepSize: 5
+            suffix: "%"
         }
 
-        // graph appearance
-        RowLayout {
-            Kirigami.FormData.label: "Graph Size:"
-            QQC2.Slider {
-                id: graphSizeSlider
-                from: 20
-                to: 100
-                stepSize: 5
-                Layout.preferredWidth: 180
-            }
-            QQC2.Label {
-                text: Math.round(graphSizeSlider.value) + "%"
-                Layout.preferredWidth: 40
-            }
+        SliderRow {
+            id: opacityRow
+            Kirigami.FormData.label: i18n("Fill Opacity:")
+            from: 0
+            to: 100
+            stepSize: 5
+            suffix: "%"
         }
 
-        RowLayout {
-            Kirigami.FormData.label: "Fill Opacity:"
-            QQC2.Slider {
-                id: opacitySlider
-                from: 0
-                to: 100
-                stepSize: 5
-                Layout.preferredWidth: 180
-            }
-            QQC2.Label {
-                text: Math.round(opacitySlider.value) + "%"
-                Layout.preferredWidth: 40
-            }
-        }
-
-        RowLayout {
-            Kirigami.FormData.label: "Line Thickness:"
-            QQC2.Slider {
-                id: lineWidthSlider
-                from: 1
-                to: 5
-                stepSize: 1
-                Layout.preferredWidth: 180
-            }
-            QQC2.Label {
-                text: Math.round(lineWidthSlider.value) + " px"
-                Layout.preferredWidth: 40
-            }
+        SliderRow {
+            id: lineWidthRow
+            Kirigami.FormData.label: i18n("Line Thickness:")
+            from: 1
+            to: 5
+            stepSize: 1
+            suffix: " px"
         }
 
         QQC2.CheckBox {
             id: overrideCheck
-            Kirigami.FormData.label: "Custom Colors:"
-            text: "Override default line colors"
+            Kirigami.FormData.label: i18n("Custom Colors:")
+            text: i18n("Override default line colors")
         }
 
         KQuickControls.ColorButton {
             id: line1Button
-            Kirigami.FormData.label: "Line 1 Color:"
+            Kirigami.FormData.label: i18n("Line 1 Color:")
             enabled: overrideCheck.checked
             showAlphaChannel: false
             onColorChanged: {
                 var s = color.toString();
-                if (s.toLowerCase() !== String(cfg_customLine1).toLowerCase())
-                    cfg_customLine1 = s;
+                if (s.toLowerCase() !== String(cfg_customLine1).toLowerCase()) cfg_customLine1 = s;
             }
         }
 
         KQuickControls.ColorButton {
             id: line2Button
-            Kirigami.FormData.label: "Line 2 Color:"
+            Kirigami.FormData.label: i18n("Line 2 Color:")
             enabled: overrideCheck.checked
             showAlphaChannel: false
             onColorChanged: {
                 var s = color.toString();
-                if (s.toLowerCase() !== String(cfg_customLine2).toLowerCase())
-                    cfg_customLine2 = s;
+                if (s.toLowerCase() !== String(cfg_customLine2).toLowerCase()) cfg_customLine2 = s;
             }
         }
     }

@@ -40,4 +40,4 @@ The Network source will draw a pink graph for Download and a purple graph for Up
 
 Lastly, the Disk source will draw a yellow graph for Read and a dark yellow graph for Write activity. By default it monitors the disk your OS drive is on, but you can pick a different disk (or all of them combined) in the settings. Like Network, it works with absolute units and auto-scales.
 
-S4 was made for use in the plasma taskbar, but it does work on the desktop. I suggest making use of the line thickness setting to your liking when the graph is larger. If your panel is on the thicker side, the graph size setting lets you shrink the graph relative to the panel.
+S4 was made for use in the plasma taskbar, but it does work on the desktop. I suggest making use of the line thickness setting to your liking when the graph is larger. If your panel is on the taller side, the graph size setting lets you shrink the graph relative to the panel.
