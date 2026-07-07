@@ -26,6 +26,19 @@ You can also install the widget from KDE Discover. In Discover, go to 'Plasma Ad
 2. In edit mode, under 'add Widgets', select 'Install from local file'
 3. Select your downloaded .plasmoid file.
 
+### From source
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/hawgle/s4-plasmoid.git
+   cd de.hawgle.plasmagraph
+   ```
+2. Install the widget package (use `-u` instead of `-i` to update an existing installation):
+   ```
+   kpackagetool6 -t Plasma/Applet -i package
+   ```
+3. Restart the plasma shell with `systemctl --user restart plasma-plasmashell.service`, or log out and back in.
+
 ## Usage
 
 By default, S4 will show you CPU usage in usermode (Green) and kernelmode (Red). Hovering over the widget will show you the current usage in percent and the process that is currently responsible for most of that usage.
